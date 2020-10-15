@@ -1,3 +1,7 @@
 #include "block.h"
 
+~Block() {
+
+}
+
 

@@ -5,15 +5,26 @@
 #include <vector>
 #include "set.h"
 
+using std::string;
 class Cache {
-	vector<Set> cache;
+ private:
+  string write_miss = "";
+  string write_hit = "";
+ public:
+  vector<Set> cache;
+  
 	// constructor
-	Cache(int n): cache(n){}
+  Cache(int n, string wm, string wh) {
+    cache.push_back(n);
+    write_miss = wm;
+    write_hit = wh;
+  }
 
 	// Destructor 
 	~Cache();
 
 	// define functions below
+	void toString();
 
 };
 
