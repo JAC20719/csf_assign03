@@ -6,7 +6,7 @@
 #include "set.h"
 
 class Cache {
-	vector<Block> cache;
+	vector<Set> cache;
 	// constructor
 	Cache(int n): cache(n){}
 
