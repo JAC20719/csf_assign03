@@ -8,18 +8,18 @@ using std::cin; using std::cout; using std::endl;
 using std::string;
 using std::getline;
 int main(int argc, char** argv){
-  long unsigned num_sets = ( (long unsigned) (atol(argv[1])));
-  long unsigned blocks_per_set = ( (long unsigned) (atol(argv[2])));
-  long unsigned bytes_per_block = ((long unsigned) (atol(argv[3])));
+  int num_sets = ((int) (atol(argv[1])));
+  int blocks_per_set = ((int) (atol(argv[2])));
+  int bytes_per_block = ((int) (atol(argv[3])));
 
   string write_miss = argv[4];
   string write_hit = argv[5];
   string timestamp = argv[6];
 								  
-  long unsigned num_offset_bits = log2(bytes_per_block * 8);
-  long unsigned  num_index_bits = log2(num_sets);
+  int num_offset_bits = (int) log2(bytes_per_block * 8);
+  int num_index_bits = (int) log2(num_sets);
 
-  Cache cache = Cache(num_sets, write_miss, write_hit);
+  Cache cache = Cache(num_sets, write_miss, write_hit, num_index_bits, num_offset_bits, blocks_per_set, timestamp);
   cache.toString();
 
   
@@ -30,8 +30,9 @@ int main(int argc, char** argv){
 	// start main loop, reading 1 instruction at a time
 	while (getline(cin,line)) {
 		ls = line[0];
-		address = line.substr(2,10);
+		address = line.substr(4,10);
 		cout << ls << " " << address << endl;
+		cache.cpuRequest(ls, address);
 	}
 	return 0;
 }
