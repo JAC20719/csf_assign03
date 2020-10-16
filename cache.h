@@ -10,12 +10,14 @@ class Cache {
  private:
   string write_miss = "";
   string write_hit = "";
+  int num_sets;
  public:
   vector<Set> cache;
   
 	// constructor
   Cache(int n, string wm, string wh) {
-    cache.push_back(n);
+    num_sets = n;
+    cache.push_back(num_sets);
     write_miss = wm;
     write_hit = wh;
   }
