@@ -36,12 +36,14 @@ void Cache::cpuRequest(char l_s, string address) {
 }
 
 unsigned Cache::addressToUnsigned(string address) {
-  return (unsigned) stoi(address, 0, 16);
+  return (unsigned) stoul(address, 0, 16);
 }
 
 unsigned Cache::extractIndex(unsigned address) {
+  cout << "ind bits" << this->num_index_bits << endl;
+  cout << "off bits" << this->num_offset_bits << endl;
   address = address << (32 - (this->num_index_bits + this->num_offset_bits));
-    return address >> (32 - this->num_index_bits);
+    return address >> (32 - this->num_offset_bits);
 }
 
 unsigned Cache::extractTag(unsigned address) {
