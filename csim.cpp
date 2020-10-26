@@ -18,7 +18,7 @@ bool isPowerof2(int i) {
 
 /* Check that all parameters are powers of 2 */
 bool checkNumParameters(int sets, int blocks, int bytes) {
-  return (isPowerof2(sets) && isPowerof2(blocks) && isPowerof2(bytes) && bytes > 4);
+  return (isPowerof2(sets) && isPowerof2(blocks) && isPowerof2(bytes) && bytes >= 4);
 }
 
 /* Check that all string parameters are valid inputs */
@@ -42,13 +42,15 @@ int main(int argc, char** argv){
   int num_sets = ((int) (atol(argv[1])));
   int blocks_per_set = ((int) (atol(argv[2])));
   int bytes_per_block = ((int) (atol(argv[3])));
-  if (checkNumParameters(num_sets, blocks_per_set, bytes_per_block)) {
+  if (!checkNumParameters(num_sets, blocks_per_set, bytes_per_block)) {
+    cout << "invalid parameters 1" << endl;
     return 1;
   }
   string write_miss = argv[4];
   string write_hit = argv[5];
   string replacement = argv[6];
   if (checkStringParameters(write_miss, write_hit, replacement)) {
+    cout << "invalid parameters 2" << endl;
     return 1;
   }
   int cache_size = bytes_per_block * blocks_per_set * num_sets;
