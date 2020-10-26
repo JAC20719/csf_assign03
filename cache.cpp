@@ -40,8 +40,8 @@ unsigned Cache::addressToUnsigned(string address) {
 }
 
 unsigned Cache::extractIndex(unsigned address) {
-  cout << "ind bits" << this->num_index_bits << endl;
-  cout << "off bits" << this->num_offset_bits << endl;
+  cout << "ind bits: " << this->num_index_bits << endl;
+  cout << "off bits: " << this->num_offset_bits << endl;
   address = address << (32 - (this->num_index_bits + this->num_offset_bits));
     return address >> (32 - this->num_offset_bits);
 }
