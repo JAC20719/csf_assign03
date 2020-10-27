@@ -59,6 +59,25 @@ class Cache {
 
 	unsigned addressToUnsigned(string address);
 
+	void store_miss(unsigned index, unsigned tag);
+
+	void store_hit(unsigned index, unsigned tag);
+	
+	//Write miss behavior
+	void write_through(unsigned index, unsigned tag);
+
+	void write_back(unsigned index, unsigned tag);
+
+	//Write behavior
+	void write_allocate(unsigned index, unsigned tag);
+
+	void no_write_allocate(unsigned index, unsigned tag);
+
+	//Load behavior
+	void load_miss(unsigned index, unsigned tag);
+
+	void load_hit(unsigned index, unsigned tag); 
+
 	
 
 };

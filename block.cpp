@@ -26,6 +26,10 @@ unsigned Block::getOrder() {
   return this->block[2];
 }
 
+unsigned Block::getDirty() {
+  return this->dirty;
+}
+
 void Block::setTag(unsigned t) {
   block[0] = t;
 }
@@ -36,5 +40,9 @@ void Block::setValid(unsigned v) {
 
 void Block::setOrder(unsigned o) {
   block[2] = o;
+}
+
+void Block::setDirty(unsigned d) {
+  this->dirty = d;
 }
 
