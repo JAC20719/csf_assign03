@@ -31,8 +31,25 @@ void Cache::cpuRequest(char l_s, string address) {
   cout << "tag: " << tag << endl;
   bool hit = Hit(index, tag);
   cout << "hit: " << hit << endl;
-
   //Handle write(based on miss hit rules)/load
+  
+  // load + hit = 1 cycle
+  // load + miss = 100 cycles + write data to cache
+  // (write-through) store + miss = put data in cache
+  Set s = this->cache[index];
+  if (l_s == 'l' && hit) {
+    // ++ cycle count
+  } else if (l_s == 'l' && !hit) {
+    for(Block b : s.set) {
+      if (b.getValid == 0) {
+        b = tag;
+	b[1] = 1;
+	break;
+      }
+    }
+
+  }
+
 }
 
 unsigned Cache::addressToUnsigned(string address) {
@@ -54,11 +71,16 @@ bool Cache::Hit(unsigned index, unsigned tag) {
   bool hit = false;
   Set s = this->cache[index];
   for(Block b : s.set) {
-    if(b.getTag() == tag && b.getValid() == 1) {
+//    if(b.getTag() == tag && b.getValid() == 1) {
+    cout << "new tag: " << tag << endl;
+    cout << "old tag: " << b.getTag() << endl;
+    if(b.getTag() == tag) {
       hit = true;
+      return hit;
     }
   }
 
   return hit;
 } 
+
 
