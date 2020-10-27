@@ -32,24 +32,68 @@ void Cache::cpuRequest(char l_s, string address) {
   bool hit = Hit(index, tag);
   cout << "hit: " << hit << endl;
   //Handle write(based on miss hit rules)/load
-  
+  bool evict = true; // will stay true if set is full
   // load + hit = 1 cycle
   // load + miss = 100 cycles + write data to cache
+  // store + hit = 1 cycle and store hit
   // (write-through) store + miss = put data in cache
-  Set s = this->cache[index];
   if (l_s == 'l' && hit) {
-    // ++ cycle count
+    // ++cycleCount
+    // ++loadHits
   } else if (l_s == 'l' && !hit) {
-    for(Block b : s.set) {
-      if (b.getValid == 0) {
-        b = tag;
-	b[1] = 1;
+    // ++loadMisses
+    // cycleCount += 100
+    for(int i = 0; i < this->blocks_per_set; i++) { // iterate thru all blocks in set
+      if (cache[index].set[i].getValid() == 0) { // if empty
+	cache[index].set[i].setTag(tag); // set new tag
+	cache[index].set[i].setValid(1); // set to full
+	cache[index].set[i].setOrder(1); // make newest
+	evict = false; // we don't have to evict anything
+        // update orders for everything else in set
+	for(int i = 0; i < this->blocks_per_set; i++) {
+          if (cache[index].set[i].getTag() != tag && cache[index].set[i].getValid() == 1) {
+            cache[index].set[i].setOrder(cache[index].set[i].getOrder() + 1);
+          }
+        }
 	break;
       }
     }
-
+    if (evict) { // this is LRU
+      for(int i = 0; i < this->blocks_per_set; i++) {
+        cout << this->blocks_per_set << endl;
+	if (cache[index].set[i].getOrder() == this->blocks_per_set) {
+	  cache[index].set[i].setTag(tag);
+	  cache[index].set[i].setValid(1);
+	  cache[index].set[i].setOrder(1);
+	}
+      }
+    }
+  } else if (l_s == 's' && hit) {
+    // ++storeHits
+    // ++cycleCount
+  } else if (l_s == 's' && !hit) {
+    // ++storeMisses
+    // cycleCount += 100
+    // currently write-through
+    for(int i = 0; i < this->blocks_per_set; i++) {
+      if (cache[index].set[i].getValid() == 0) {
+	cache[index].set[i].setTag(tag); 
+	cache[index].set[i].setValid(1);
+	cache[index].set[i].setOrder(1);
+	evict = false;
+	break;
+      }
+    }
+    if (evict) {
+      for(int i = 0; i < this->blocks_per_set; i++) {
+        if (cache[index].set[i].getOrder() == this->blocks_per_set) {
+	  cache[index].set[i].setTag(tag); // I give up on this
+	  cache[index].set[i].setValid(1);
+	  cache[index].set[i].setOrder(1);
+	}
+      }
+    }
   }
-
 }
 
 unsigned Cache::addressToUnsigned(string address) {
@@ -59,8 +103,12 @@ unsigned Cache::addressToUnsigned(string address) {
 unsigned Cache::extractIndex(unsigned address) {
   cout << "ind bits: " << this->num_index_bits << endl;
   cout << "off bits: " << this->num_offset_bits << endl;
-  address = address << (32 - (this->num_index_bits + this->num_offset_bits));
-    return address >> (32 - this->num_offset_bits);
+  address = address << this->num_tag_bits;
+  if (this->num_index_bits == 0) {
+    return 0;
+  } else {
+    return address >> (32 - this->num_index_bits);
+  }
 }
 
 unsigned Cache::extractTag(unsigned address) {
@@ -72,8 +120,6 @@ bool Cache::Hit(unsigned index, unsigned tag) {
   Set s = this->cache[index];
   for(Block b : s.set) {
 //    if(b.getTag() == tag && b.getValid() == 1) {
-    cout << "new tag: " << tag << endl;
-    cout << "old tag: " << b.getTag() << endl;
     if(b.getTag() == tag) {
       hit = true;
       return hit;

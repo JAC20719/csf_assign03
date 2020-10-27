@@ -25,3 +25,16 @@ unsigned Block::getValid() {
 unsigned Block::getOrder() {
   return this->block[2];
 }
+
+void Block::setTag(unsigned t) {
+  block[0] = t;
+}
+
+void Block::setValid(unsigned v) {
+  block[1] = v;
+}
+
+void Block::setOrder(unsigned o) {
+  block[2] = o;
+}
+

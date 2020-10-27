@@ -60,7 +60,7 @@ int main(int argc, char** argv){
   int num_index_bits = (int) log2(cache_size) - (int) log2(blocks_per_set) - num_offset_bits;
   int num_tag_bits = 32 - num_index_bits - num_offset_bits;
   // initialize the cache 
-  Cache cache = Cache(num_sets, write_miss, write_hit, num_index_bits, num_offset_bits, blocks_per_set, replacement);
+  Cache cache = Cache(num_sets, write_miss, write_hit, num_index_bits, num_offset_bits, num_tag_bits, blocks_per_set, replacement);
   cache.toString();
 
   char ls = '\0'; // store instruction
@@ -79,8 +79,8 @@ int main(int argc, char** argv){
     address = line.substr(4,10);
     cout << ls << " " << address << endl;
     cache.cpuRequest(ls, address);	
+    cache.toString();
   }
-
   cout << "Total loads: " << numLoads << endl;
   cout << "Total stores: " << numStores << endl;
   cout << "Load hits: " << 0 << endl;

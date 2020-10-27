@@ -30,6 +30,11 @@ public:
 
 	unsigned getOrder();
 	
+	void setTag(unsigned t);
+
+	void setValid(unsigned v);
+
+	void setOrder(unsigned o);
 };
 
 #endif // BLOCK_H

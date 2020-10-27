@@ -15,6 +15,7 @@ class Cache {
   int num_sets;
   int num_index_bits;
   int num_offset_bits;
+  int num_tag_bits;
   int blocks_per_set;
   string timestamp;
   int num_loads; //track number of loads from cache
@@ -24,12 +25,13 @@ class Cache {
   
 	// constructor
   Cache(int ns, string wm, string wh, int nib,
-	int nob, int bps, string t) {
+	int nob, int ntb, int bps, string t) {
     num_sets = ns;
     write_miss = wm;
     write_hit = wh;
     num_index_bits = nib;
     num_offset_bits = nob;
+    num_tag_bits = ntb;
     blocks_per_set = bps;
     timestamp = t; 
     num_loads = 0;
