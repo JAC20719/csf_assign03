@@ -17,15 +17,21 @@ class Cache {
   int num_offset_bits;
   int num_tag_bits;
   int blocks_per_set;
+  int bytes_per_block;
   string timestamp;
   int num_loads; //track number of loads from cache
   int num_stores; //track number of stores to cache
+  int cycleCount;
+  int loadMisses;
+  int loadHits;
+  int storeMisses;
+  int storeHits;
  public:
   vector<Set> cache;
   
 	// constructor
   Cache(int ns, string wm, string wh, int nib,
-	int nob, int ntb, int bps, string t) {
+	int nob, int ntb, int bps, int bpb, string t) {
     num_sets = ns;
     write_miss = wm;
     write_hit = wh;
@@ -33,9 +39,15 @@ class Cache {
     num_offset_bits = nob;
     num_tag_bits = ntb;
     blocks_per_set = bps;
+    bytes_per_block = bpb;
     timestamp = t; 
     num_loads = 0;
     num_stores = 0;
+    cycleCount = 0;
+    loadMisses = 0;
+    loadHits = 0;
+    storeMisses = 0;
+    storeHits = 0;
 
      for(int i = 0; i < num_sets; i++) {
        cache.push_back(Set(blocks_per_set, i));
@@ -49,6 +61,16 @@ class Cache {
 	void toString();
 
 	void cpuRequest(char l_s, string address); //Call to cache from cpu for loads/stores
+
+	int getCycleCount();
+
+	int getLoadMisses();
+
+	int getLoadHits();
+
+	int getStoreMisses();
+
+	int getStoreHits();
 
  private:
 	unsigned extractIndex(unsigned address);  //Get index of address
@@ -76,7 +98,9 @@ class Cache {
 	//Load behavior
 	void load_miss(unsigned index, unsigned tag);
 
-	void load_hit(unsigned index, unsigned tag); 
+	void load_hit(unsigned index, unsigned tag);
+
+	int evict_block(unsigned index, unsigned tag);
 
 	
 

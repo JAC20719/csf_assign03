@@ -31,51 +31,20 @@ void Cache::cpuRequest(char l_s, string address) {
   cout << "tag: " << tag << endl;
   bool hit = Hit(index, tag);
   cout << "hit: " << hit << endl;
-  //Handle write(based on miss hit rules)/load
-  bool evict = true; // will stay true if set is full
-  // load + hit = 1 cycle
-  // load + miss = 100 cycles + write data to cache
-  // store + hit = 1 cycle and store hit
-  // (write-through) store + miss = put data in cache
   if (l_s == 'l' && hit) {
-    // ++cycleCount
-    // ++loadHits
+    this->loadHits++; //Increase load hits
     load_hit(index, tag);
   } else if (l_s == 'l' && !hit) {
-    // ++loadMisses
-    // cycleCount += 100 * bytes_per_block / 4 (since its 100 cycles per 4 bytes)
-    // ++cycleCount (Must then load from cache to cpu)
+    this->loadMisses++; //Increase load misses
     load_miss(index, tag);
   } else if (l_s == 's' && hit) {
-    // ++storeHits
-    // ++cycleCount
+    this->storeHits++; //Increase store hits
     store_hit(index, tag);
   } else if (l_s == 's' && !hit) {
-    // ++storeMisses
-    // cycleCount += 100
-    // currently write-through
+    this->storeMisses++; //Increase store misses
     store_miss(index, tag);
-    for(int i = 0; i < this->blocks_per_set; i++) {
-      if (cache[index].set[i].getValid() == 0) {
-	cache[index].set[i].setTag(tag); 
-	cache[index].set[i].setValid(1);
-	cache[index].set[i].setOrder(1);
-	evict = false;
-	break;
-      }
-    }
-    if (evict) {
-      for(int i = 0; i < this->blocks_per_set; i++) {
-        if (cache[index].set[i].getOrder() == this->blocks_per_set) {
-	  cache[index].set[i].setTag(tag); // I give up on this
-	  cache[index].set[i].setValid(1);
-	  cache[index].set[i].setOrder(1);
-	}
-      }
-    }
   }
 }
-
 unsigned Cache::addressToUnsigned(string address) {
   return (unsigned) stoul(address, 0, 16);
 }
@@ -112,22 +81,27 @@ bool Cache::Hit(unsigned index, unsigned tag) {
 void Cache::store_miss(unsigned index, unsigned tag) {
   if(this->write_miss.compare("write-allocate") == 0) {
     cout << "IT IS WRITE ALLOCATE" << endl;
-    write_allocate(index, tag);
-    store_hit(index, tag);
+    write_allocate(index, tag); //Bring main mem into cache
   } else { //it was no-write-allocate
     cout << "IT IS NO WRITE ALLOCATE" << endl;
+    no_write_allocate(index, tag); //Bring main mem straight to cpu, skip cache
   }
 }
 
 void Cache::store_hit(unsigned index, unsigned tag) {
   if(this->write_hit.compare("write-through") == 0) {
     cout << "IT IS WRITE THROUGH" << endl;
+    write_through(index, tag); //Write to cache and main mem
   } else { //it was write-back
     cout << "IT IS WRITE BACK" << endl;
+    write_back(index, tag); //Write to cache only, mark as block as dirty
   }
 }
 
-void Cache::load_hit(unsigned index, unsigned tag) {}
+void Cache::load_hit(unsigned index, unsigned tag) {
+  //Expense is load from cache of 1 cycle
+  this->cycleCount++;
+}
 
 void Cache::load_miss(unsigned index, unsigned tag) {
   bool evict = true;
@@ -146,44 +120,136 @@ void Cache::load_miss(unsigned index, unsigned tag) {
       break;
     }
   }
-  if (evict) { // this is LRU
+  if (evict) {
+    int evicted_index = evict_block(index, tag);
+    if(cache[index].set[evicted_index].getDirty() == 1) {
+      //Set dirty bit to 0, now consistent with main mem
+      cache[index].set[evicted_index].setDirty(0);
+      //Extra expense of writing cache back to main mem
+      //100 * (bytes_per_block / 4) cycles
+      this->cycleCount += 100 * (this->bytes_per_block / 4);
+    }
+  }
+  //Expense is loading from main mem to cache plus loading from cache
+  //100 * (bytes_per_block / 4) cycles plus
+  //1 cycle
+  this->cycleCount += 100 * (this->bytes_per_block / 4);
+  this->cycleCount++;
+}
+
+void Cache::write_through(unsigned index, unsigned tag) {
+  for(int i = 0; i < this->blocks_per_set; i++) { // iterate thru all blocks in set
+    if (cache[index].set[i].getTag() == tag) { // if empty
+      cache[index].set[i].setOrder(1); // make newest
+      // update orders for everything else in set
+      for(int i = 0; i < this->blocks_per_set; i++) {
+	if (cache[index].set[i].getTag() != tag && cache[index].set[i].getValid() == 1) {
+	  cache[index].set[i].setOrder(cache[index].set[i].getOrder() + 1);
+	}
+      }
+      break;
+    }
+  }
+  //Expense is writing to cache and main mem
+  //1 cycle plus
+  //100 * (bytes_per_block / 4) cycles
+  this->cycleCount += 100 * (this->bytes_per_block / 4);
+  this->cycleCount++;
+}
+
+void Cache::write_back(unsigned index, unsigned tag) {
+  for(int i = 0; i < this->blocks_per_set; i++) { // iterate thru all blocks in set
+    if (cache[index].set[i].getTag() == tag) { // if block in question
+      cache[index].set[i].setDirty(1); // mark dirty bit
+      cache[index].set[i].setOrder(1); // make newest
+      // update orders for everything else in set
+      for(int i = 0; i < this->blocks_per_set; i++) {
+	if (cache[index].set[i].getTag() != tag && cache[index].set[i].getValid() == 1) {
+	  cache[index].set[i].setOrder(cache[index].set[i].getOrder() + 1);
+	}
+      }
+      break;
+    }
+  }
+  //Write back has expense of 1, writing to cache only
+  //1 cycle
+  this->cycleCount++;
+}
+
+void Cache::write_allocate(unsigned index, unsigned tag) {
+  bool evict = true;
+  for(int i = 0; i < this->blocks_per_set; i++) { // iterate thru all blocks in set
+    if (cache[index].set[i].getValid() == 0) { // if empty
+      cache[index].set[i].setTag(tag); // set new tag
+      cache[index].set[i].setValid(1); // set to full
+      cache[index].set[i].setOrder(1); // make newest
+      evict = false; // we don't have to evict anything
+      // update orders for everything else in set
+      for(int i = 0; i < this->blocks_per_set; i++) {
+	if (cache[index].set[i].getTag() != tag && cache[index].set[i].getValid() == 1) {
+	  cache[index].set[i].setOrder(cache[index].set[i].getOrder() + 1);
+	}
+      }
+      break;
+    }
+  }
+  if (evict) {
+    int evicted_index = evict_block(index, tag);
+    if(cache[index].set[evicted_index].getDirty() == 1) {
+      //Extra expense of writing cache back to main mem (dirty bit indicated write back is being used)
+      //100 * (bytes_per_block / 4) cycles
+      this->cycleCount += 100 * (this->bytes_per_block / 4);
+    }
+  }
+  //Write allocate cost is loading from main mem to cache plus writing to cache
+  //100 * (bytes_per_block / 4) cycles plus
+  //1 cycle
+  this->cycleCount += 100 * (this->bytes_per_block / 4);
+  this->cycleCount++;
+}
+
+void Cache::no_write_allocate(unsigned index, unsigned tag) {
+  //No write allocate has cost of writing straight to main mem
+  //100 * (bytes_per_block / 4)
+  this->cycleCount += 100 * (this->bytes_per_block / 4);
+}
+
+int Cache::evict_block(unsigned index, unsigned tag) {
+  if(this->timestamp.compare("lru") == 0) { //lru
     for(int i = 0; i < this->blocks_per_set; i++) {
       cout << this->blocks_per_set << endl;
       if (cache[index].set[i].getOrder() == this->blocks_per_set) {
 	cache[index].set[i].setTag(tag);
 	cache[index].set[i].setValid(1);
 	cache[index].set[i].setOrder(1);
+	return i;
       }
     }
+  } else { //fifo
+
   }
+
+  return -1;
 }
 
-void Cache::write_through(unsigned index, unsigned tag) {}
-
-void Cache::write_back(unsigned index, unsigned tag) {}
-
-void Cache::write_allocate(unsigned index, unsigned tag) {
-  bool evict = true;
-  for(int i = 0; i < this->blocks_per_set; i++) {
-      if (cache[index].set[i].getValid() == 0) {
-	cache[index].set[i].setTag(tag); 
-	cache[index].set[i].setValid(1);
-	cache[index].set[i].setOrder(1);
-	evict = false;
-	break;
-      }
-    }
-    if (evict) {
-      for(int i = 0; i < this->blocks_per_set; i++) {
-        if (cache[index].set[i].getOrder() == this->blocks_per_set) {
-	  cache[index].set[i].setTag(tag); // I give up on this
-	  cache[index].set[i].setValid(1);
-	  cache[index].set[i].setOrder(1);
-	}
-      }
-    }
+int Cache::getCycleCount() {
+  return this->cycleCount;
 }
 
-void Cache::no_write_allocate(unsigned index, unsigned tag) {}
+int Cache::getLoadMisses() {
+  return this->loadMisses;
+}
+
+int Cache::getLoadHits() {
+  return this->loadHits;
+}
+
+int Cache::getStoreMisses() {
+  return this->storeMisses;
+}
+
+int Cache::getStoreHits() {
+  return this->storeHits;
+}
 
 

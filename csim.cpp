@@ -60,7 +60,7 @@ int main(int argc, char** argv){
   int num_index_bits = (int) log2(cache_size) - (int) log2(blocks_per_set) - num_offset_bits;
   int num_tag_bits = 32 - num_index_bits - num_offset_bits;
   // initialize the cache 
-  Cache cache = Cache(num_sets, write_miss, write_hit, num_index_bits, num_offset_bits, num_tag_bits, blocks_per_set, replacement);
+  Cache cache = Cache(num_sets, write_miss, write_hit, num_index_bits, num_offset_bits, num_tag_bits, blocks_per_set, bytes_per_block, replacement);
   cache.toString();
 
   char ls = '\0'; // store instruction
@@ -81,13 +81,13 @@ int main(int argc, char** argv){
     cache.cpuRequest(ls, address);	
     cache.toString();
   }
-  cout << "Total loads: " << numLoads << endl;
+  cout << "Total loads: " << cache.getLoadMisses() + cache.getLoadHits() << endl;
   cout << "Total stores: " << numStores << endl;
-  cout << "Load hits: " << 0 << endl;
-  cout << "Load misses: " << 0 << endl;
-  cout << "Store hits: " << 0 << endl;
-  cout << "Store misses: " << 0 << endl;
-  cout << "Total Cycles: " << 0 << endl;
+  cout << "Load hits: " << cache.getLoadHits() << endl;
+  cout << "Load misses: " << cache.getLoadMisses() << endl;
+  cout << "Store hits: " << cache.getStoreHits() << endl;
+  cout << "Store misses: " << cache.getStoreMisses() << endl;
+  cout << "Total Cycles: " << cache.getCycleCount() << endl;
 
   return 0;
 }
