@@ -4,14 +4,14 @@
 using std::cout;
 using std::endl;
 void Cache::toString() {
-  //cout << "--Cache--" << endl;
-  //cout << "Number of sets: " << this->num_sets << endl;
-  //cout << "Write hit: " << this->write_hit << endl;
-  //cout << "Write miss: " << this->write_miss << endl;
+  cout << "--Cache--" << endl;
+  cout << "Number of sets: " << this->num_sets << endl;
+  cout << "Write hit: " << this->write_hit << endl;
+  cout << "Write miss: " << this->write_miss << endl;
 
-  /*for(int i = 0; i < this->num_sets; i++) {
+  for(int i = 0; i < this->num_sets; i++) {
     this->cache[i].toString();
-    }*/
+    }
 }
 
 Cache::~Cache() {
