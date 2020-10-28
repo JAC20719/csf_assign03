@@ -217,7 +217,7 @@ void Cache::no_write_allocate(unsigned index, unsigned tag) {
 int Cache::evict_block(unsigned index, unsigned tag) {
   if(this->timestamp.compare("lru") == 0) { //lru
     for(int i = 0; i < this->blocks_per_set; i++) {
-      cout << this->blocks_per_set << endl;
+      //cout << this->blocks_per_set << endl;
       if (cache[index].set[i].getOrder() == this->blocks_per_set) {
 	cache[index].set[i].setTag(tag);
 	cache[index].set[i].setValid(1);
