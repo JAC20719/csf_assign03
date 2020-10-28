@@ -4,14 +4,14 @@
 using std::cout;
 using std::endl;
 void Cache::toString() {
-  cout << "--Cache--" << endl;
-  cout << "Number of sets: " << this->num_sets << endl;
-  cout << "Write hit: " << this->write_hit << endl;
-  cout << "Write miss: " << this->write_miss << endl;
+  //cout << "--Cache--" << endl;
+  //cout << "Number of sets: " << this->num_sets << endl;
+  //cout << "Write hit: " << this->write_hit << endl;
+  //cout << "Write miss: " << this->write_miss << endl;
 
-  for(int i = 0; i < this->num_sets; i++) {
+  /*for(int i = 0; i < this->num_sets; i++) {
     this->cache[i].toString();
-  }
+    }*/
 }
 
 Cache::~Cache() {
@@ -19,18 +19,18 @@ Cache::~Cache() {
 }
 
 void Cache::cpuRequest(char l_s, string address) {
-  cout << endl;
-  cout << "--CACHE REQUEST--" << endl;
-  cout << "address: " << address << endl;
-  cout << "load or store: " << l_s << endl;
+  //cout << endl;
+  //cout << "--CACHE REQUEST--" << endl;
+  //cout << "address: " << address << endl;
+  //cout << "load or store: " << l_s << endl;
   unsigned u_address = addressToUnsigned(address);
-   cout << "int address: " << u_address << endl;
+  //cout << "int address: " << u_address << endl;
   unsigned index = extractIndex(u_address);
-  cout << "index: " << index << endl;
+  //cout << "index: " << index << endl;
   unsigned tag = extractTag(u_address);
-  cout << "tag: " << tag << endl;
+  //cout << "tag: " << tag << endl;
   bool hit = Hit(index, tag);
-  cout << "hit: " << hit << endl;
+  //cout << "hit: " << hit << endl;
   if (l_s == 'l' && hit) {
     this->loadHits++; //Increase load hits
     load_hit(index, tag);
@@ -50,8 +50,8 @@ unsigned Cache::addressToUnsigned(string address) {
 }
 
 unsigned Cache::extractIndex(unsigned address) {
-  cout << "ind bits: " << this->num_index_bits << endl;
-  cout << "off bits: " << this->num_offset_bits << endl;
+  //cout << "ind bits: " << this->num_index_bits << endl;
+  //cout << "off bits: " << this->num_offset_bits << endl;
   address = address << this->num_tag_bits;
   if (this->num_index_bits == 0) {
     return 0;
@@ -80,20 +80,20 @@ bool Cache::Hit(unsigned index, unsigned tag) {
 
 void Cache::store_miss(unsigned index, unsigned tag) {
   if(this->write_miss.compare("write-allocate") == 0) {
-    cout << "IT IS WRITE ALLOCATE" << endl;
+    
     write_allocate(index, tag); //Bring main mem into cache
   } else { //it was no-write-allocate
-    cout << "IT IS NO WRITE ALLOCATE" << endl;
+    
     no_write_allocate(index, tag); //Bring main mem straight to cpu, skip cache
   }
 }
 
 void Cache::store_hit(unsigned index, unsigned tag) {
   if(this->write_hit.compare("write-through") == 0) {
-    cout << "IT IS WRITE THROUGH" << endl;
+    
     write_through(index, tag); //Write to cache and main mem
   } else { //it was write-back
-    cout << "IT IS WRITE BACK" << endl;
+    
     write_back(index, tag); //Write to cache only, mark as block as dirty
   }
 }

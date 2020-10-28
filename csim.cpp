@@ -61,7 +61,7 @@ int main(int argc, char** argv){
   int num_tag_bits = 32 - num_index_bits - num_offset_bits;
   // initialize the cache 
   Cache cache = Cache(num_sets, write_miss, write_hit, num_index_bits, num_offset_bits, num_tag_bits, blocks_per_set, bytes_per_block, replacement);
-  cache.toString();
+  //cache.toString();
 
   char ls = '\0'; // store instruction
   string address; // store address
@@ -77,9 +77,9 @@ int main(int argc, char** argv){
       numStores++;
     }
     address = line.substr(4,10);
-    cout << ls << " " << address << endl;
+    //cout << ls << " " << address << endl;
     cache.cpuRequest(ls, address);	
-    cache.toString();
+    //cache.toString();
   }
   cout << "Total loads: " << cache.getLoadMisses() + cache.getLoadHits() << endl;
   cout << "Total stores: " << numStores << endl;
