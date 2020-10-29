@@ -8,6 +8,13 @@ using std::cin; using std::cout; using std::endl;
 using std::string;
 using std::getline;
 
+
+/* TODO: make sure # of command line args is right. */
+/* TODO: have to return correct error message for each command line arg */
+/* TODO: Check out write-allocate write-back fifo because its failing gcc.trace */
+/* TODO: Double check total cycle calculation is functional */
+
+
 /* Check if an integer is a power of 2 */
 bool isPowerof2(int i) {
   if(i == 0) {
