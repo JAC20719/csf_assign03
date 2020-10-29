@@ -70,8 +70,8 @@ bool Cache::Hit(unsigned index, unsigned tag) {
   bool hit = false;
   Set s = this->cache[index];
   for(Block b : s.set) {
-//    if(b.getTag() == tag && b.getValid() == 1) {
-    if(b.getTag() == tag) {
+    if(b.getTag() == tag && b.getValid() == 1) {
+//    if(b.getTag() == tag) {
       hit = true;
       return hit;
     }
