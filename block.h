@@ -8,7 +8,7 @@ class Block {
  private:
   unsigned dirty;
  public:
-  vector<unsigned> block{0, 0, 0};
+  vector<unsigned> block{NULL, 0, 0};
 	// my thought is to store [tag, valid, order]
   Block() {
     //All blocks invalid upon creation

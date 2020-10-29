@@ -101,7 +101,8 @@ class Cache {
 	void load_hit(unsigned index, unsigned tag);
 
 	int evict_block(unsigned index, unsigned tag);
-
+	
+	void updateOrder(unsigned index, unsigned tag);
 	
 
 };

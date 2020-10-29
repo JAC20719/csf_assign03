@@ -12,9 +12,9 @@ long unsigned Set::getIndex() {
 }
 
 void Set::toString() {
-  cout << "     --Set--" << endl;
-  cout << "     Index:" << this->index << endl;
+//  cout << "     --Set--" << endl;
+  //cout << "     Index:" << this->index << endl;
   for (int i = 0; i < this->blocks_per_set; i++) {
-    this->set[i].toString();
+    //this->set[i].toString();
   }
 }
