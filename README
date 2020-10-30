@@ -1,19 +1,12 @@
 Tyler Amos : Tamos5
 Justin Canedy : 
 
-/* Disclaimer */
-First, our total cycle count does not work for write-back fifo. 
-In our write-back function, the main for loop executes when provided lru because fifo does not bring in a new block of memory on a store hit. 
-When the for-loop executes it updates the orders of the blocks so that we can keep track of which blocks to evict. 
-We are assuming that when configured as fifo, the orders are updated differently (as they should be) however,
-this affects the eviction process throughout the execution of the program. 
-In write-back, the cache accesses the cpu when a block is evicted, which affects the cycle count.
-The rest of our counts are correct, so we are assuming that our cpu-access process has an error in fifo write-back but we do not know how to fix it. 
-
-
-/* Experiements */
+/* Experiments */
 We decided to use the gcc.trace file for our experiments and keep that constant so that the cache configuration
 was the only independent variable in our experiements. We also kept the size of the data constant at 16 bytes
+
+**NOTE: The eviction policy chosen makes a non-significant change in miss/hit/cycle counts in comparison to the other configurations, so we will primarily
+consider LRU to compare the other configurations.
 
 // write-allocate write-back lru
 
@@ -38,15 +31,29 @@ This cost the least total cycles (9344483) because when the data is split into m
 which means that the cpu is not accessed as often. The store/load hit/miss count is all the same, but the cycles are what changes due to cpu accesses occuring less
 frequent. 
 
-
+** From this point on we will only consider a 4-way associative cache (256 4 16) because we know that it is more optimal ** 
 // write-allocate write-through lru
+write-through was way more expensive in total cycles than write-back (84564083). This is because every single store accesses the cpu. 
+Files with a lot of loads may benefit more from this configuration, but trace files with a mix of both can become expensive. 
+The count on the load/store hits/misses was the same as in write-back, suggesting that simply the cost of accessing the cpu on every store
+is more expensive and less efficient than write-back. 
 
+
+// no-write-allocate write-though lru
+This configuration is relatively close to write-allocate write-through in terms of total cycles (82111016).
+However, there are significantly more store misses (32667 vs 9236). 
 
 
 
 /* Contributions */
 Tyler:
-
+In general for this project, I set up a lot of the general framework, then Justin would fix all of the bugs and perfect the way the the program ran. 
+Justin and I frequently communicated about what stage our program was at, and suggested to each other possible parts of the code to check to hone in on
+more specific bugs. Justin coded an amazing output mechanism that displayed our whole cache, what was being queried, and the update after it was attempted
+to be added to the cache. I used that to set up the first stages of the eviction policies, which Justin later debugged and perfected. Essentially we took turns
+working on the project, and over the course of 1.5 weeks constructed the whole program in tandem. Justin would implement something new and I would debug it, 
+then I would implement something new and Justin would debug it. We didn't necessarily assign specific aspects of the project to each other, but were fluid
+in adding to the program. S/O Justin for finding most of our major bugs and fixing them! I also handled all of the parameter checking. 
 
 
 
