@@ -7,7 +7,7 @@
 using std::vector;
 class Set {
  private:
-  int long unsigned index; //Should this be long unsigned for if index > 32 bits??
+  int long unsigned index; 
   int blocks_per_set;
 public:
 	vector<Block> set;
@@ -21,12 +21,7 @@ public:
 	  }
 	}
 
-	// Destructor (do we need this?)
-	~Set();
-
-	// Add functions to manipulate set
 	void toString();
-	
 	long unsigned getIndex();
     
 };

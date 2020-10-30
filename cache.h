@@ -93,7 +93,7 @@ class Cache {
 	//Write behavior
 	void write_allocate(unsigned index, unsigned tag);
 
-	void no_write_allocate(unsigned index, unsigned tag);
+	void no_write_allocate();
 
 	//Load behavior
 	void load_miss(unsigned index, unsigned tag);

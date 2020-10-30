@@ -9,12 +9,6 @@ using std::string;
 using std::getline;
 
 
-/* TODO: make sure # of command line args is right. */
-/* TODO: have to return correct error message for each command line arg */
-/* TODO: Check out write-allocate write-back fifo because its failing gcc.trace */
-/* TODO: Double check total cycle calculation is functional */
-
-
 /* Check if an integer is a power of 2 */
 bool isPowerof2(int i) {
   if(i == 0) {
@@ -24,41 +18,80 @@ bool isPowerof2(int i) {
 }
 
 /* Check that all parameters are powers of 2 */
-bool checkNumParameters(int sets, int blocks, int bytes) {
-  return (isPowerof2(sets) && isPowerof2(blocks) && isPowerof2(bytes) && bytes >= 4);
+string checkNumParameters(int sets, int blocks, int bytes) {
+  if (!isPowerof2(sets)) { 
+    return  "1st parameter invalid";
+  } else if (!isPowerof2(blocks)) {
+    return "2nd parameter invalid";
+  } else if (!isPowerof2(bytes) || bytes < 4) {
+    return "3rd parameter invalid";
+  }
+  return "\0";
 }
 
-/* Check that all string parameters are valid inputs */
-bool checkStringParameters(string miss, string hit, string replace) {
-  if (miss.compare("write-allocate") != 0) {
-    return false;
-  } else if (miss.compare("no-write-allocate") != 0) {
-    return false;
-  } else if (hit.compare("write-through") != 0) {
-    return false;
-  } else if (hit.compare("write-back") != 0) {
-    return false;
-  } else if (replace.compare("lru") != 0) {
-    return false;
-  } else if (replace.compare("fifo") != 0) {
-    return false;
+/* check 4th parameter validity */
+string check4thParam(string miss) {
+  if (miss.compare("write-allocate") == 0 || miss.compare("no-write-allocate") == 0) {
+    return "\0";
+  } else {
+    return "4th parameter invalid";
   }
 }
 
+/* check 5th param validity */
+string check5thParam(string hit) { 
+  if (hit.compare("write-through") == 0 || hit.compare("write-back") == 0) {
+    return "\0";
+  } else {
+    return "5th parameter invalid";
+  }
+}
+
+/* check 6th param validity */
+string check6thParam(string replace) {
+  if (replace.compare("lru") == 0 || replace.compare("fifo") == 0) {
+    return "\0";
+  } else {
+    return "6th parameter invalid";
+  }
+}
+
+/* Check that all string parameters are valid inputs */
+string checkStringParameters(string miss, string hit, string replace) {
+  string fourth = check4thParam(miss);
+  string fifth = check5thParam(hit);
+  string sixth = check6thParam(replace);
+  if (!fourth.empty()) {
+    return fourth;
+  } else if (!fifth.empty()) {
+    return fifth;
+  } else if (!sixth.empty()) {
+    return sixth;
+  }
+  return "\0";
+}
+  
+  
 int main(int argc, char** argv){
   // receive all command line args and check validity
+  if (argc != 7) {
+    cout << "incorrect number of parameters" << endl;
+    return 1;
+  }
   int num_sets = ((int) (atol(argv[1])));
   int blocks_per_set = ((int) (atol(argv[2])));
   int bytes_per_block = ((int) (atol(argv[3])));
-  if (!checkNumParameters(num_sets, blocks_per_set, bytes_per_block)) {
-    cout << "invalid parameters 1" << endl;
+  string error_message1 = checkNumParameters(num_sets, blocks_per_set, bytes_per_block);
+  if (!error_message1.empty()) { 
+    cout << error_message1 << endl;
     return 1;
   }
   string write_miss = argv[4];
   string write_hit = argv[5];
   string replacement = argv[6];
-  if (checkStringParameters(write_miss, write_hit, replacement)) {
-    cout << "invalid parameters 2" << endl;
+  string error_message = checkStringParameters(write_miss, write_hit, replacement);
+  if (!error_message.empty()) {
+    cout << error_message << endl;
     return 1;
   }
   // calculate the # bits for each part of the address 

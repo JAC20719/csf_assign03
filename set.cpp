@@ -3,14 +3,14 @@
 
 using std::cout;
 using std::endl;
-Set::~Set() {
-  
-}
 
 long unsigned Set::getIndex() {
   return this->index;
 }
 
+/*
+** Helper function to view sets 
+*/
 void Set::toString() {
   cout << "     --Set--" << endl;
   cout << "     Index:" << this->index << endl;

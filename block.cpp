@@ -3,9 +3,6 @@
 
 using std::cout;
 using std::endl;
-Block::~Block() {
-
-}
 
 void Block::toString() {
   cout << "          --Block--" << endl;

@@ -8,39 +8,29 @@ class Block {
  private:
   unsigned dirty;
  public:
-  vector<unsigned> block{NULL, 0, 0};
-	// my thought is to store [tag, valid, order]
+  vector<unsigned> block{0, 0, 0};
   Block() {
     //All blocks invalid upon creation
     dirty = 0;
   } 
 
-	// on piazza he said we didn't need to store the actual data
-	// because its a simulation
+  void toString();
 
+  unsigned getTag();
 
+  unsigned getValid();
 
-	// destructor (do we need this?)
-	~Block();
+  unsigned getOrder();
 
-	// define functions to manipulate block below
-	void toString();
-
-	unsigned getTag();
-
-	unsigned getValid();
-
-	unsigned getOrder();
-
-	unsigned getDirty();
+  unsigned getDirty();
 	
-	void setTag(unsigned t);
+  void setTag(unsigned t);
 
-	void setValid(unsigned v);
+  void setValid(unsigned v);
 
-	void setOrder(unsigned o);
+  void setOrder(unsigned o);
 
-	void setDirty(unsigned d);
+  void setDirty(unsigned d);
 };
 
 #endif // BLOCK_H
