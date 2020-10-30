@@ -201,10 +201,10 @@ void Cache::write_through(unsigned index, unsigned tag) {
       }
     }
   }
-  //Expense is writing to cache and main mem
+  //Expense is writing 1 byte to cache and main mem
   //1 cycle plus
-  //100 * (bytes_per_block / 4) cycles
-  this->cycleCount += 100 * (this->bytes_per_block / 4);
+  //100  cycles
+  this->cycleCount += 100; 
   this->cycleCount++;
 }
 
@@ -213,19 +213,18 @@ void Cache::write_through(unsigned index, unsigned tag) {
 ** use eviction policy to determine order updates and handle dirty-bit marking 
 */
 void Cache::write_back(unsigned index, unsigned tag) {
- // if(this->timestamp.compare("lru") == 0) {
     for(int i = 0; i < this->blocks_per_set; i++) { // iterate thru all blocks in set
       if (cache[index].set[i].getTag() == tag && cache[index].set[i].getValid() == 1) { // if block in question
 	cache[index].set[i].setDirty(1); // mark dirty bit
-     
-	unsigned oldOrder = cache[index].set[i].getOrder();
-	cache[index].set[i].setOrder(1); // make newest
-	// update orders for everything else in set
-	updateOrder(index, tag, oldOrder);
+	if(this->timestamp.compare("lru") == 0) {
+	  unsigned oldOrder = cache[index].set[i].getOrder();
+	  cache[index].set[i].setOrder(1); // make newest
+	  // update orders for everything else in set
+	  updateOrder(index, tag, oldOrder);
+	}
 	break;
       }
     }
- // }
   //Write back has expense of 1, writing to cache only
   this->cycleCount++;
 }
@@ -266,9 +265,9 @@ void Cache::write_allocate(unsigned index, unsigned tag) {
 ** specifies no-write-allocate
 */
 void Cache::no_write_allocate() {
-  //No write allocate has cost of writing straight to main mem
-  //100 * (bytes_per_block / 4)
-  this->cycleCount += 100 * (this->bytes_per_block / 4);
+  //No write allocate has cost of writing 1 byte straight to main mem
+  //100 cycles
+  this->cycleCount += 100;
 }
 
 /* Given index of a set to search and tag of a block that will replace
