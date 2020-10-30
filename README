@@ -1,1 +1,63 @@
-Testing git repository!
+Tyler Amos : Tamos5
+Justin Canedy : 
+
+/* Disclaimer */
+First, our total cycle count does not work for write-back fifo. 
+In our write-back function, the main for loop executes when provided lru because fifo does not bring in a new block of memory on a store hit. 
+When the for-loop executes it updates the orders of the blocks so that we can keep track of which blocks to evict. 
+We are assuming that when configured as fifo, the orders are updated differently (as they should be) however,
+this affects the eviction process throughout the execution of the program. 
+In write-back, the cache accesses the cpu when a block is evicted, which affects the cycle count.
+The rest of our counts are correct, so we are assuming that our cpu-access process has an error in fifo write-back but we do not know how to fix it. 
+
+
+/* Experiements */
+We decided to use the gcc.trace file for our experiments and keep that constant so that the cache configuration
+was the only independent variable in our experiements. We also kept the size of the data constant at 16 bytes
+
+// write-allocate write-back lru
+
+**general**
+1st we found that larger caches have significantly less misses and total cycles. However, it comes at the cost of time. 
+Since we do a linear scan of the sets to find if there are valid blocks left, when the cache becomes full, we scan through the whole set.
+Then we scan through the whole set again to update all of the orders. For every single querey, this causes the time to increase towards
+the end of the program. 
+
+1 256 16
+Then we tried a fully associative cache, which ran incredibly slow and cost a significant amount of total cycles (10802483). This is because we had to access the cpu
+very often because after the cache was full, we had to write to the cpu every time a query was made because a block was definitely going to be evicted.
+If the cache was huge, it would take less time and would cost less cycles, but that is impractical. 
+
+256 1 16
+Then we tried a direct-mapped cache and it ran extremely fast, but it cost way more cycles (20312483) than the associative cache becuase we had to access the cpu 
+on eviction more often. Since all of these configurations are write-allocate, we have to access the CPU on every store miss, which is expensive.
+
+256 4 16
+A 4-way set associative cache is our base case for what we presumed would be optimal with this configuration and all configurations (obviously).
+This cost the least total cycles (9344483) because when the data is split into multiple sets, with multiple available blocks in every set, there are less evictions
+which means that the cpu is not accessed as often. The store/load hit/miss count is all the same, but the cycles are what changes due to cpu accesses occuring less
+frequent. 
+
+
+// write-allocate write-through lru
+
+
+
+
+/* Contributions */
+Tyler:
+
+
+
+
+
+
+
+
+Justin:
+
+
+
+
+
+
