@@ -4,14 +4,14 @@
 using std::cout;
 using std::endl;
 void Cache::toString() {
-  //cout << "--Cache--" << endl;
-  //cout << "Number of sets: " << this->num_sets << endl;
-  //cout << "Write hit: " << this->write_hit << endl;
- // cout << "Write miss: " << this->write_miss << endl;
+  cout << "--Cache--" << endl;
+  cout << "Number of sets: " << this->num_sets << endl;
+  cout << "Write hit: " << this->write_hit << endl;
+  cout << "Write miss: " << this->write_miss << endl;
 
-  for(int i = 0; i < this->num_sets; i++) {
-    this->cache[i].toString();
-    }
+  //for(int i = 0; i < this->num_sets; i++) {
+  //this->cache[i].toString();
+  //}
 }
 
 Cache::~Cache() {
@@ -33,6 +33,7 @@ void Cache::cpuRequest(char l_s, string address) {
   //cout << "tag: " << tag << endl;
   bool hit = Hit(index, tag);
   //cout << "hit: " << hit << endl;
+  
   if (l_s == 'l' && hit) {
     this->loadHits++; //Increase load hits
     load_hit(index, tag);
@@ -46,6 +47,8 @@ void Cache::cpuRequest(char l_s, string address) {
     this->storeMisses++; //Increase store misses
     store_miss(index, tag);
   }
+
+  //this->cache[index].toString();
 }
 unsigned Cache::addressToUnsigned(string address) {
   return (unsigned) stoul(address, 0, 16);
@@ -84,9 +87,10 @@ void Cache::store_miss(unsigned index, unsigned tag) {
   if(this->write_miss.compare("write-allocate") == 0) {
     
     write_allocate(index, tag); //Bring main mem into cache
+    store_hit(index, tag);
   } else { //it was no-write-allocate
     
-    no_write_allocate(index, tag); //Bring main mem straight to cpu, skip cache
+    no_write_allocate(index, tag); //Store only to main mem
   }
 }
 
@@ -109,8 +113,9 @@ void Cache::load_hit(unsigned index, unsigned tag) {
   if (this->timestamp.compare("lru") == 0) {
     for (int i = 0; i < this->blocks_per_set; i++) {
       if (cache[index].set[i].getTag() == tag) {
-        cache[index].set[i].setOrder(1);
-	updateOrder(index,tag);
+	  unsigned oldOrder = cache[index].set[i].getOrder();
+	  cache[index].set[i].setOrder(1);
+	  updateOrder(index,tag, oldOrder);
       }
     }
   }
@@ -128,7 +133,7 @@ void Cache::load_miss(unsigned index, unsigned tag) {
       cache[index].set[i].setOrder(1); // make newest
       evict = false; // we don't have to evict anything
       // update orders for everything else in set
-      updateOrder(index, tag);
+      updateOrder(index, tag, this->blocks_per_set);
       /*
       for(int i = 0; i < this->blocks_per_set; i++) {
 	if (cache[index].set[i].getTag() != tag && cache[index].set[i].getValid() == 1) {
@@ -161,9 +166,9 @@ void Cache::load_miss(unsigned index, unsigned tag) {
 /* Update the orders of the blocks in a set by increasing the 
 ** order field by 1
 */
-void Cache::updateOrder(unsigned index, unsigned tag) {
+void Cache::updateOrder(unsigned index, unsigned tag, unsigned orderRestraint) {
   for(int i = 0; i < this->blocks_per_set; i++) {
-    if (cache[index].set[i].getTag() != tag && cache[index].set[i].getValid() == 1) {
+    if (cache[index].set[i].getTag() != tag && cache[index].set[i].getValid() == 1 && cache[index].set[i].getOrder() < orderRestraint) {
        cache[index].set[i].setOrder(cache[index].set[i].getOrder() + 1);
     }
   }
@@ -171,20 +176,23 @@ void Cache::updateOrder(unsigned index, unsigned tag) {
 
 
 void Cache::write_through(unsigned index, unsigned tag) {
-  for(int i = 0; i < this->blocks_per_set; i++) { // iterate thru all blocks in set
-    if (cache[index].set[i].getTag() == tag) { // if correct block
-      cache[index].set[i].setOrder(1); // make newest
-      // update orders for everything else in set
-      // this happens for both LRU and FIFO
-      updateOrder(index, tag);
-      /*
-      for(int i = 0; i < this->blocks_per_set; i++) {
-	if (cache[index].set[i].getTag() != tag && cache[index].set[i].getValid() == 1) {
+  if(this->timestamp.compare("lru") == 0) {
+    for(int i = 0; i < this->blocks_per_set; i++) { // iterate thru all blocks in set
+      if (cache[index].set[i].getTag() == tag && cache[index].set[i].getValid() == 1) { // if correct block
+	unsigned oldOrder = cache[index].set[i].getOrder();
+	cache[index].set[i].setOrder(1); // make newest
+	// update orders for everything else in set
+	// this happens for both LRU and FIFO
+	updateOrder(index, tag, oldOrder);
+	/*
+	  for(int i = 0; i < this->blocks_per_set; i++) {
+	  if (cache[index].set[i].getTag() != tag && cache[index].set[i].getValid() == 1) {
 	  cache[index].set[i].setOrder(cache[index].set[i].getOrder() + 1);
-	}
+	  }
+	  }
+	*/
+	break;
       }
-      */
-      break;
     }
   }
   //Expense is writing to cache and main mem
@@ -195,20 +203,25 @@ void Cache::write_through(unsigned index, unsigned tag) {
 }
 
 void Cache::write_back(unsigned index, unsigned tag) {
-  for(int i = 0; i < this->blocks_per_set; i++) { // iterate thru all blocks in set
-    if (cache[index].set[i].getTag() == tag) { // if block in question
-      cache[index].set[i].setDirty(1); // mark dirty bit
-      cache[index].set[i].setOrder(1); // make newest
-      // update orders for everything else in set
-      updateOrder(index, tag);
-      /*
-      for(int i = 0; i < this->blocks_per_set; i++) {
-	if (cache[index].set[i].getTag() != tag && cache[index].set[i].getValid() == 1) {
+  if(this->timestamp.compare("lru") == 0) {
+    for(int i = 0; i < this->blocks_per_set; i++) { // iterate thru all blocks in set
+      if (cache[index].set[i].getTag() == tag && cache[index].set[i].getValid() == 1) { // if block in question
+	cache[index].set[i].setDirty(1); // mark dirty bit
+     
+	unsigned oldOrder = cache[index].set[i].getOrder();
+	cache[index].set[i].setOrder(1); // make newest
+	// update orders for everything else in set
+	updateOrder(index, tag, oldOrder);
+     
+	/*
+	  for(int i = 0; i < this->blocks_per_set; i++) {
+	  if (cache[index].set[i].getTag() != tag && cache[index].set[i].getValid() == 1) {
 	  cache[index].set[i].setOrder(cache[index].set[i].getOrder() + 1);
-	}
+	  }
+	  }
+	*/
+	break;
       }
-      */
-      break;
     }
   }
   //Write back has expense of 1, writing to cache only
@@ -226,7 +239,7 @@ void Cache::write_allocate(unsigned index, unsigned tag) {
       evict = false; // we don't have to evict anything
       // update orders for everything else in set
       // This happens for both FIFO and LRU
-      updateOrder(index, tag);
+      updateOrder(index, tag, this->blocks_per_set);
       /*
       for(int i = 0; i < this->blocks_per_set; i++) {
 	if (cache[index].set[i].getTag() != tag && cache[index].set[i].getValid() == 1) {
@@ -249,7 +262,7 @@ void Cache::write_allocate(unsigned index, unsigned tag) {
   //100 * (bytes_per_block / 4) cycles plus
   //1 cycle
   this->cycleCount += 100 * (this->bytes_per_block / 4);
-  this->cycleCount++;
+  //this->cycleCount++;
 }
 
 void Cache::no_write_allocate(unsigned index, unsigned tag) {
@@ -263,16 +276,17 @@ void Cache::no_write_allocate(unsigned index, unsigned tag) {
 ** within the set 
 */
 int Cache::evict_block(unsigned index, unsigned tag) {
- // if(this->timestamp.compare("lru") == 0) { //lru
     for(int i = 0; i < this->blocks_per_set; i++) {
     //  cout << this->blocks_per_set << endl;
       if (cache[index].set[i].getOrder() == this->blocks_per_set) {
 	cache[index].set[i].setTag(tag);
 	cache[index].set[i].setValid(1);
 	cache[index].set[i].setOrder(1);
+	updateOrder(index, tag, this->blocks_per_set);
 	return i;
       }
     }
+ 
   return -1;
 }
 

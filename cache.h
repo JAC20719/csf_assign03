@@ -102,7 +102,7 @@ class Cache {
 
 	int evict_block(unsigned index, unsigned tag);
 	
-	void updateOrder(unsigned index, unsigned tag);
+	void updateOrder(unsigned index, unsigned tag, unsigned orderRestraint);
 	
 
 };
