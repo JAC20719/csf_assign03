@@ -1,5 +1,5 @@
 Tyler Amos : Tamos5
-Justin Canedy : 
+Justin Canedy : Jcanedy1
 
 /* Experiments */
 We decided to use the gcc.trace file for our experiments and keep that constant so that the cache configuration
@@ -33,16 +33,19 @@ frequent.
 
 ** From this point on we will only consider a 4-way associative cache (256 4 16) because we know that it is more optimal ** 
 // write-allocate write-through lru
-write-through was way more expensive in total cycles than write-back (84564083). This is because every single store accesses the cpu. 
+write-through was way more expensive in total cycles than write-back (25318283 vs 9344483). This is because every single store accesses the cpu. 
 Files with a lot of loads may benefit more from this configuration, but trace files with a mix of both can become expensive. 
 The count on the load/store hits/misses was the same as in write-back, suggesting that simply the cost of accessing the cpu on every store
-is more expensive and less efficient than write-back. 
+is more expensive and less efficient than write-back.
 
 
 // no-write-allocate write-though lru
-This configuration is relatively close to write-allocate write-through in terms of total cycles (82111016).
-However, there are significantly more store misses (32667 vs 9236). 
+This configuration is relatively close to write-allocate write-through in terms of total cycles (22865216), outperforming it slightly.
+However, there are significantly more store misses (32667 vs 9236) and load misses (6584 vs 3399). This makes sense since the no-write-allocate configuration bypasses writing to the cache and writes sraight to memory. This means that only loads misses cause memory to be stored in the cache. This is supported by the fact that no-write-allocate had more load misses than write-allocate.
+It appears that given a mixture of loads and stores both configurations perform similarly in terms of cycles.
 
+// write-allocate write-back lru
+This configuration had the best overall performance with cycles being 9344483. It had lower store/load misses than no-write-allocate write-through and equal store/load misses to write-allocate write-through. This suggests that the drastic difference in cycles is due to the write-back configuration and how store hits are processed. Unlike write-through which writes to cache and main mem every time, write-back only writes to the cache and only to main mem if the block has been editted. This can cause better performance for multiple reasons. First, if the block brought in undergoes many writes, then write-allocate must write to main mem on every write, whereas write-back may only write to main mem once if that block is evicted. Secondly, write-allocate and write-back incur the same cost if the block brought in to cache only undergoes 1 write since both will write to main mem once. So in the worst case, write-back is equivalent to write-through. As for the write-allocate configuration, we saw above that it has little difference in performance when compared to no-write-allocate given a mixture of stores and loads. Thus write-allocate write-back is the best performing configuration.
 
 
 /* Contributions */
@@ -62,6 +65,10 @@ in adding to the program. S/O Justin for finding most of our major bugs and fixi
 
 
 Justin:
+Indeed Tyler did a majority of the cache/set/block framework whereas I created a majority of the function definitions(The actual code in the functions was split between us).
+Tyler created the bulk of csim and its error handeling/retrieval of input and I wrote the code to parse each address into its tag/index bits. The homework as a whole was a major
+team effort as Tyler mentioned. It was a constant back and forth of one of us not knowing how to do something at the time and the other debugging it. A large part of it came from implementing
+the different configurations and evictions when one of us would write new code, get stuck, and then the other would fix it. 
 
 
 
